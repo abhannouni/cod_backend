@@ -27,4 +27,10 @@ class CategoryController extends Controller
         $this->categoryService->deleteCategory($id);
         return response()->json(['message' => 'Category deleted']);
     }
+
+    public function browse()
+    {
+        $categories = $this->categoryService->browseCategories();
+        return response()->json($categories);
+    }
 }
