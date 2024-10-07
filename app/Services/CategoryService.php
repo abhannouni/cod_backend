@@ -21,4 +21,9 @@ class CategoryService
     {
         return $this->categoryRepo->delete($id);
     }
+
+    public function browseCategories()
+    {
+        return $this->categoryRepo->all();
+    }
 }
