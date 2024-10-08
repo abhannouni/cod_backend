@@ -16,17 +16,43 @@ class ProductController extends Controller
 
     public function create(Request $request)
     {
-        $data = $request->only(['name', 'description', 'price', 'image', 'category_id']);
-        $this->productService->createProduct($data);
+        // Validate incoming request data
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'price' => 'required|numeric|min:0',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'category_ids' => 'required|array',
+            'category_ids.*' => 'exists:categories,id'
+        ]);
 
-        return response()->json(['message' => 'Product created']);
+        // Create the product
+        $imageName = time().'.'.$request->image->extension();
+        $request->image->move(public_path('images'), $imageName);
+        $imageUrl = asset('images/' . $imageName);
+        echo $imageUrl;
+        $product = $this->productService->createProduct([
+            'name' => $validatedData['name'],
+            'description' => $validatedData['description'],
+            'price' => $validatedData['price'],
+            'image' => 'images/'.$imageName
+        ]);
+
+        // Attach categories to the product
+        if (isset($validatedData['category_ids'])) {
+            $product->categories()->attach($validatedData['category_ids']);
+        }
+
+        return response()->json(['message' => 'Product created successfully', 'product' => $product, 'imageUrl' => $imageUrl], 201);
     }
+
 
     public function browse(Request $request)
     {
-        $filters = $request->only(['category']);
+        $filters = $request->only(['category_ids']);
         $sortBy = $request->input('sortBy', 'name');
-        $products = $this->productService->getAllProducts($filters, $sortBy);
+        $perPage = $request->get('per_page', 10);
+        $products = $this->productService->getAllProducts($filters, $sortBy, $perPage);
 
         return response()->json($products);
     }

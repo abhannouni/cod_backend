@@ -17,9 +17,14 @@ class ProductService
         return $this->productRepo->create($data);
     }
 
-    public function deleteProduct(int $id)
+    public function deleteProduct($id)
     {
-        return $this->productRepo->delete($id);
+        $product = $this->productRepo->findById($id);
+        if (!$product) {
+            throw new \Exception('Product not found');
+        }
+
+        $this->productRepo->delete();
     }
 
     public function getAllProducts($filters = [], $sortBy = 'name', $perPage = 10)

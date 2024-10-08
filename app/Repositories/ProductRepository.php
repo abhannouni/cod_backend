@@ -20,16 +20,20 @@ class ProductRepository
         return Product::find($id);
     }
 
-    public function allPaginated($filters = [], $sortBy = 'name', $perPage = 10)
-    {
-        $query = Product::query();
-        
-        if (!empty($filters['category'])) {
-            $query->whereHas('categories', function($q) use ($filters) {
-                $q->where('name', $filters['category']);
-            });
-        }
+        public function allPaginated($filters = [], $sortBy = 'name', $perPage = 10)
+        {
+            $query = Product::query();
 
-        return $query->orderBy($sortBy)->paginate($perPage);
-    }
+            if (!empty($filters['category_ids'])) {
+                $query->whereHas('categories', function($q) use ($filters) {
+                    $q->whereIn('categories.id', $filters['category_ids']);
+                });
+            }
+
+        
+            $query->orderBy($sortBy);
+
+
+            return $query->paginate($perPage);
+        }
 }
